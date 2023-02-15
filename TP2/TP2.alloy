@@ -1,0 +1,119 @@
+sig Node {
+    children : set Node
+}
+sig Leaf extends Node {}
+one sig Root in Node {}
+
+sig Red, Black in Node {}
+
+pred Invs {
+
+  /* Rules That Every Red-Black Tree Follows: */ 
+  
+  /* ------------------------------------------------------------------------------------------- */
+  
+  /* 1- Todo o nodo tem uma cor: preta ou vermelha. */
+  /* Queremos garantir que cada nodo tem uma e uma só cor, sendo esta preta ou vermelha */
+  
+  all nodo : Node | (nodo in Red or nodo in Black) and (nodo not in Red or nodo not in Black) 
+  
+  
+  /* ------------------------------------------------------------------------------------------- */
+  
+  /* 2- A raíz da árvore tem sempre cor preta.*/
+  
+  all root : Root | root in Black
+  
+  
+  /* ------------------------------------------------------------------------------------------- */
+  
+  /* 3- Nunca pode haver dois nós adjacentes de cor vermelha. */
+  /* Qualquer nó pai cuja cor é vermelho, não pode ter filhos de cor vermelho. */
+
+  all node : Node | node in Red implies node.children in Black and children.node in Black
+  
+  
+  /* ------------------------------------------------------------------------------------------- */
+  
+  /* 4- Qualquer caminho desde um nodo, incluindo a raíz, até aos seus descentes NULL, tem 
+  sempre o mesmo número de nós cuja cor é preto. */
+  
+  /* Quaisquer dois nodos cuja cor é preta e são irmãos, têm exatamente o mesmo 
+  número de nodos filhos. */
+  
+  all father : Node | all brother1, brother2 : Black | (brother1 in father.children and brother2 in father.children) implies #(brother1.children) = #(brother2.children)
+  
+  /* Quaisquer dois nodos irmãos cuja cor dum é preta e do outro é vermelha, o nodo cuja cor 
+  é vermelha terá maior número de nodos filhos que o nodo irmão de cor preta. */
+
+  
+  all father  : Node | all black_brother : Black | all red_brother : Red | (black_brother in father.children and red_brother in father.children) implies #(red_brother.children) > #(black_brother.children)
+  
+   
+  /* ------------------------------------------------------------------------------------------- */
+
+  /* 5- Todas as folhas são nodos cuja cor é preta. */
+  
+  all leaf : Leaf | leaf in Black
+ 
+  
+  /* ------------------------------------------------------------------------------------------- */
+
+  
+  
+  /* Outras regras definidas para completar a definição de uma Red-Black Tree: */
+  
+  
+  
+  /* Qualquer nodo que tenha filhos, não é uma folha. */
+  
+  all father,child : Node | child in father.children implies father not in Leaf
+
+  
+  /* ------------------------------------------------------------------------------------------- */
+
+  /* A raíz da árvore não tem nodo pai. */
+  
+  all node,child : Node | child in children.node implies node not in Root
+
+  
+  /* ------------------------------------------------------------------------------------------- */
+
+  
+  /* Um nodo não pode ser pai nem filho dele mesmo. */
+  
+  all node : Node | node not in node.children and node not in children.node
+  
+
+  /* ------------------------------------------------------------------------------------------- */
+
+  
+  /* Qualquer nodo só pode ter um pai ou não ter nenhum, caso seja a raíz da árvore. */
+  
+  all node_or_root : Node | one children.node_or_root or node_or_root in Root
+  
+
+  /* ------------------------------------------------------------------------------------------- */
+  
+  
+  /* Um nodo pai nunca estará na relação descente do nodo filho. */
+  
+  all father : Node | some child : Node | father not in Leaf implies child in father.^children
+  
+
+  /* ------------------------------------------------------------------------------------------- */
+  
+  /* Um nodo filho nunca estará na relação ascendente do pai.  */
+  
+  all father, child : Node | father in child.children implies father not in ^children.child 
+
+  
+  /* ------------------------------------------------------------------------------------------- */
+  
+  /* Qualquer nodo que não seja folha, tem obrigatoriamente dois nodos filhos. */
+  
+  all father : Node | father not in Leaf implies #(father.children) = 2
+  
+
+  /* ------------------------------------------------------------------------------------------- */  
+}

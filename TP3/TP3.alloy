@@ -1,0 +1,101 @@
+sig Password {}
+sig User {
+    var password : set Password
+}
+var sig LoggedIn in User {}
+
+
+/* Predicado de comportamento -> estado inicial e transições */
+pred behavior{
+
+    no LoggedIn
+    no password
+  
+    always{
+      stutter 
+      or (some utilizador: User | some pass: Password | Registar[utilizador, pass] or LogIn[utilizador, pass] or AlteraPass[utilizador,pass])
+      or (some utilizador: User | LogOut[utilizador] or Apagar[utilizador])
+  	}
+    
+}
+
+
+/* Predicado de registar um utilizador */
+pred Registar [utilizador : User, pass : Password]{
+      
+   	historically utilizador not in LoggedIn
+ 	historically pass not in utilizador.password
+  
+    utilizador.password' = pass
+  
+    all x : User - utilizador | x.password' = x.password
+  
+    LoggedIn' = LoggedIn + utilizador 
+        
+}
+
+/* Predicado de log in de um utilizador */
+pred LogIn [utilizador : User, pass : Password]{
+  	
+  	utilizador not in LoggedIn 
+
+    pass in utilizador.password
+  
+    all x : User | x.password' = x.password
+  
+  	LoggedIn' = LoggedIn + utilizador
+      
+}
+
+
+/* Predicado de log out de um utilizador */
+pred LogOut [utilizador : User]{
+  
+     utilizador in LoggedIn
+  
+     LoggedIn' = LoggedIn - utilizador
+  
+      all x : User | x.password' = x.password
+}
+
+
+/* Predicado de apagar um utilizador */
+pred Apagar [utilizador : User]{
+  
+  	utilizador in LoggedIn
+  	
+  	no utilizador.password'
+  
+  	all x : User - utilizador | x.password' = x.password
+  
+  	
+  	LoggedIn' = LoggedIn - utilizador
+      
+}
+
+
+/* Predicado de alterar uma palavra passe de um utilizador */
+pred AlteraPass [utilizador : User, pass : Password] {
+  	
+  	
+  
+  	utilizador in LoggedIn 
+  
+  	historically pass not in utilizador.password
+  
+  	utilizador.password' = pass
+  
+  	all x : User - utilizador | x.password' = x.password
+  
+  	LoggedIn' = LoggedIn
+	
+
+}
+
+
+/* Predicado stutter */
+pred stutter{
+    LoggedIn' = LoggedIn
+  
+    all utilizador : User | utilizador.password' = utilizador.password
+}
